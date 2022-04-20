@@ -1,0 +1,153 @@
+import turtle
+import random
+
+#provides location of every right corner per cube/quadrant in the 3x3 grid
+quadrantxy = {1: [100, 100], 2: [200, 100], 3: [300, 100], 4: [100, 200], 5: [200, 200], 6: [300, 200], 7: [100, 300], 8: [200, 300], 9: [300, 300]}
+
+#Dic for checking available quadrants during a game to not double up 
+available = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9}
+
+#win conditions
+win_conditions  = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [1, 4, 7], [2, 5, 8], [3, 6, 9], [1, 5, 9], [3, 5, 7]]
+
+#lists that will be compared to wind_conditions for a hit
+X_win_check = []
+O_win_check = []
+
+#makes the 3x3 grid
+def grid():
+  for i in range(4):
+    if i == 0:
+      for i in range(2):
+        turtle.forward(100)
+        turtle.left(90)
+    else:
+      for i in range(11):
+        if i < 4:
+          turtle.forward(100)
+          turtle.left(90)
+        elif i < 8:
+          turtle.forward(200)
+          turtle.left(90)
+        else:
+          turtle.forward(300)
+          turtle.left(90)
+
+#moves turtle to bottoms right of a square and turns it north using data from quadrantxy
+def setup(quadrant):
+  turtle.forward(quadrantxy[quadrant][1])
+  turtle.left(90)
+  turtle.forward(quadrantxy[quadrant][0])
+  turtle.left(90)
+
+#makes the turtle create the X symbol in a quadrant
+def xsymbol(setup):
+  turtle.left(45)
+  turtle.forward(141.42)
+  turtle.left(135)
+  turtle.forward(100)
+  turtle.left(135)
+  turtle.forward(141.42)
+  turtle.left(45)
+  turtle.forward(100 - turtle.position()[1])
+  turtle.left(90)
+  turtle.goto(-200, 100)
+  turtle.left(90)
+
+#makes the turtle create the O symbol in a quadrant
+def circlesymbol(setup):
+  turtle.forward(50)
+  turtle.circle(50)
+  turtle.forward(100 - turtle.position()[1])
+  turtle.left(90)
+  turtle.goto(-200, 100)
+  turtle.left(90)
+
+#Asks user to input an int and compares it to available to make sure its valid, if valid it appends that int to win_check from append, and draws the X using xsymbol
+def X_turn_choice():
+  while True:
+    quadrant_choice = input("Please pick a quadrant: ")
+    if int(quadrant_choice) not in available:
+      continue
+    else:
+      X_win_check.append(available.pop(int(quadrant_choice)))
+      break
+  xsymbol(setup(int(quadrant_choice)))
+
+#Same as above but for O
+def O_turn_choice():
+  while True:
+    quadrant_choice = input("Please pick a quadrant: ")
+    if int(quadrant_choice) not in available:
+      continue
+    else:
+      O_win_check.append(available.pop(int(quadrant_choice)))
+      break  
+  circlesymbol(setup(int(quadrant_choice)))
+
+#acts as opposing player and does simlilar fucntions to the above two but with random.choice()
+def random_choice():
+  if turn == 0:
+    quadrant_choice = random.choice(list(available.values()))
+    circlesymbol(setup(quadrant_choice))
+    O_win_check.append(available.pop(int(quadrant_choice)))   
+  else:
+    quadrant_choice = random.choice(list(available.values()))
+    xsymbol(setup(quadrant_choice))  
+    X_win_check.append(available.pop(int(quadrant_choice)))
+
+#checks for hit between the win_check lists and win_conditions and prints out winners or ties
+def check_for_win():
+  X_win_check.sort()
+  O_win_check.sort()
+  for i in win_conditions:
+    count = 0
+    if i[0] in X_win_check and i[1] in X_win_check and i[2] in X_win_check:
+      print("X has won the match!")
+      return True
+    elif i[0] in O_win_check and i[1] in O_win_check and i[2] in O_win_check:
+      print("O has won the match!")
+      return True
+    elif count == 8:
+      print("Match is a tie!")
+      return True
+    count += 1
+    
+#initiates opening dialogue and choice while forcing and input of X or O
+while True:
+  choice = input("Choose X or O: ")
+  if choice == "X" or choice == "O":
+    break
+  else:
+    continue
+
+#Checks between X or O and begins the game with a len check on available to make sure the game doesnt break around turn 9 if all options exhausted 
+if choice == "X":
+  print("Congrgulations you'll be choosing first!")
+  turn = 0
+  grid()
+  while True:
+    
+    X_turn_choice()
+    if check_for_win() == True:
+      break
+    if len(available) == 0:
+      print("Match is a tie!")
+      break
+    random_choice()
+    if check_for_win() == True:
+      break
+else:
+  print("Unfortunately you'll be going second!")
+  turn = 1
+  grid()
+  while True:
+    if check_for_win() == True:
+      break
+    random_choice()
+    if len(available) == 0:
+      print("Match is a tie!")
+      break
+    if check_for_win() == True:
+      break
+    O_turn_choice()
